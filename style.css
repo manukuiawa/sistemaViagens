@@ -99,3 +99,51 @@ img {
   width: 60px;
   height: 60px;
 }
+
+.card {
+  border-radius: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.02);
+}
+
+.card-title {
+  font-weight: bold;
+  color: #011C40;
+}
+
+.card-text strong {
+  color: #333;
+}
+
+.btn-azul-claro {
+  background-color: #0487D9;
+  color: white;
+  border: none;
+}
+
+.btn-azul-medio {
+  background-color: #0476D9;
+  color: white;
+  border: none;
+}
+
+.btn-azul-escuro {
+  background-color: #033E8C;
+  color: white;
+}
+
+.border-azul-escuro {
+  border: 2px solid #011C40;
+}
+
+.sticky-title {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  padding: 15px 0;
+  z-index: 10;
+  border-bottom: 2px solid #ccc;
+}
