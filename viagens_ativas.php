@@ -17,8 +17,8 @@
     </a>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="cadastrar_viagens.php">Cadastrar Viagens</a></li>
-        <li class="nav-item"><a class="nav-link active" href="#">Viagens Ativas</a></li>
+        <li class="nav-item"><a class="nav-link" href="cadastrar_viagem.php">Cadastrar Viagens</a></li>
+        <li class="nav-item"><a class="nav-link active" href="">Viagens Ativas</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Viagens Fechadas</a></li>
       </ul>
     </div>
@@ -26,7 +26,7 @@
 </nav>
 
 <main class="container my-5">
-  <h1 class="text-center mb-4 sticky-title">Viagens Ativas</h1>
+  <h1 class="text-center mb-4">Viagens Ativas</h1>
 
   <div class="row">
     <?php
@@ -49,7 +49,7 @@
           <!-- Botões lado a lado -->
           <div class="d-flex justify-content-center gap-2 mb-3">
             <!-- Botão Entrou -->
-            <form action="atualizar_confirmados.php" method="POST">
+            <form action="confirmados.php" method="POST">
               <input type="hidden" name="id_viagem" value="<?php echo $viagem['id']; ?>">
               <button type="submit" name="acao" value="incrementar" class="btn btn-azul-claro btn-sm w-100">
                 <i class="fas fa-user-plus me-1"></i>Entrou
@@ -57,7 +57,7 @@
             </form>
 
             <!-- Botão Saiu -->
-            <form action="atualizar_confirmados.php" method="POST">
+            <form action="confirmados.php" method="POST">
               <input type="hidden" name="id_viagem" value="<?php echo $viagem['id']; ?>">
               <button type="submit" name="acao" value="decrementar" class="btn btn-azul-medio btn-sm w-100">
                 <i class="fas fa-user-minus me-1"></i>Saiu
