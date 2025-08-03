@@ -124,10 +124,19 @@ img {
   border: none;
 }
 
+.btn-azul-claro:hover {
+    background-color: #069fff;
+}
+
 .btn-azul-medio {
-  background-color: #0476D9;
+  background-color: #0487D9;
   color: white;
   border: none;
+}
+
+.btn-azul-medio:hover {
+  background-color: #069fff;
+  
 }
 
 .btn-azul-escuro {
@@ -135,15 +144,12 @@ img {
   color: white;
 }
 
-.border-azul-escuro {
-  border: 2px solid #011C40;
+.btn-azul-escuro:hover {
+    background-color: #0964db;
 }
 
-.sticky-title {
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  padding: 15px 0;
-  z-index: 10;
-  border-bottom: 2px solid #ccc;
+.texto_mes {
+  font-family: 'Dancing Script', sans-serif;
+  font-weight: bold;
+  font-size: 38px;
 }
