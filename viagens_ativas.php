@@ -1,13 +1,41 @@
 <?php
 require 'conexao.php';
 
-// Consulta todas as viagens ativas
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_viagem'], $_POST['acao'])) {
+  $id = $_POST['id_viagem'];
+  $acao = $_POST['acao'];
+
+  $sql = "SELECT confirmados FROM viagens WHERE id = ?";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([$id]);
+  $viagem = $stmt->fetch(PDO::FETCH_ASSOC);
+
+  if ($viagem) {
+    $confirmados = (int) $viagem['confirmados'];
+    if ($acao === 'incrementar') {
+      $confirmados++;
+    } elseif ($acao === 'decrementar' && $confirmados > 0) {
+      $confirmados--;
+    }
+
+    $updateSql = "UPDATE viagens SET confirmados = ? WHERE id = ?";
+    $updateStmt = $pdo->prepare($updateSql);
+    $updateStmt->execute([$confirmados, $id]);
+
+    echo json_encode(['success' => true, 'confirmados' => $confirmados]);
+    exit;
+  }
+
+  echo json_encode(['success' => false]);
+  exit;
+}
+
 $sql = "SELECT * FROM viagens WHERE fechada = FALSE ORDER BY data_viagem ASC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $viagens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Agrupar viagens por mês
+
 $viagens_por_mes = [];
 
 foreach ($viagens as $viagem) {
@@ -25,7 +53,6 @@ foreach ($viagens as $viagem) {
   $viagens_por_mes[$mes_num]['viagens'][] = $viagem;
 }
 
-// Ordena os meses
 ksort($viagens_por_mes);
 ?>
 
@@ -37,8 +64,7 @@ ksort($viagens_por_mes);
   <link rel="icon" type="image" href="/images/logo.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="./styles/style.css?v=bustCache123">
-
+  <link rel="stylesheet" href="./styles/style.css?v=123">
 </head>
 <body>
 
@@ -50,7 +76,7 @@ ksort($viagens_por_mes);
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="cadastrar_viagem.php">Cadastrar Viagens</a></li>
-        <li class="nav-item"><a class="nav-link active" href="">Viagens Ativas</a></li>
+        <li class="nav-item"><a class="nav-link active" href="#">Viagens Ativas</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Viagens Fechadas</a></li>
       </ul>
     </div>
@@ -69,21 +95,24 @@ ksort($viagens_por_mes);
             <div class="card-body text-center">
               <h2 class="card-title mb-3"><?php echo htmlspecialchars($viagem['destino']); ?></h2>
               <h5 class="card-subtitle mb-2 text-muted">📅 <?php echo htmlspecialchars($viagem['data_viagem']); ?></h5>
-              <p class="card-text mb-4">Passageiros Confirmados: <strong><?php echo $viagem['confirmados']; ?></strong></p>
+              <p class="card-text mb-4">
+                Passageiros Confirmados:
+                <strong id="confirmados-<?php echo $viagem['id']; ?>">
+                  <?php echo $viagem['confirmados']; ?>
+                </strong>
+              </p>
 
               <div class="d-flex justify-content-center gap-2 mb-3">
-                
-                 <form action="confirmados.php#viagem-<?php echo $viagem['id']; ?>" method="POST">
-                   <button type="submit" name="acao" value="incrementar" class="btn btn-azul-claro btn-sm w-100">
-                    <i class="fas fa-user-plus me-1"></i>Entrou
-                  </button>
-                </form>
-                <form action="confirmados.php" method="POST">
-                  <input type="hidden" name="id_viagem" value="<?php echo $viagem['id']; ?>">
-                  <button type="submit" name="acao" value="decrementar" class="btn btn-azul-medio btn-sm w-100">
-                    <i class="fas fa-user-minus me-1"></i>Saiu
-                  </button>
-                </form>
+                <button class="btn btn-azul-claro btn-sm w-100 btn-confirmar"
+                        data-id="<?php echo $viagem['id']; ?>"
+                        data-acao="incrementar">
+                  <i class="fas fa-user-plus me-1"></i>Entrou
+                </button>
+                <button class="btn btn-azul-medio btn-sm w-100 btn-confirmar"
+                        data-id="<?php echo $viagem['id']; ?>"
+                        data-acao="decrementar">
+                  <i class="fas fa-user-minus me-1"></i>Saiu
+                </button>
               </div>
 
               <form action="fechar_viagem.php" method="POST">
@@ -116,5 +145,37 @@ ksort($viagens_por_mes);
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.querySelectorAll('.btn-confirmar').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const botao = e.currentTarget;
+      const id = botao.dataset.id;
+      const acao = botao.dataset.acao;
+
+      const formData = new FormData();
+      formData.append('id_viagem', id);
+      formData.append('acao', acao);
+
+      try {
+        const response = await fetch(window.location.href, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          document.querySelector(`#confirmados-${id}`).textContent = data.confirmados;
+        } else {
+          alert('Erro ao atualizar passageiros');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro');
+      }
+    });
+  });
+  
+</script>
 </body>
 </html>
