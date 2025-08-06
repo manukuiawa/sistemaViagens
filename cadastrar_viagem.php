@@ -22,8 +22,8 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link active" href="cadastrar_viagens.php">Cadastrar Viagens</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Viagens Ativas</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Viagens Fechadas</a></li>
+        <li class="nav-item"><a class="nav-link" href="viagens_ativas.php">Viagens Ativas</a></li>
+        <li class="nav-item"><a class="nav-link" href="fechar_viagens.php">Viagens Fechadas</a></li>
       </ul>
     </div>
   </div>

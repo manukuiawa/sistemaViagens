@@ -76,8 +76,8 @@ ksort($viagens_por_mes);
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="cadastrar_viagem.php">Cadastrar Viagens</a></li>
-        <li class="nav-item"><a class="nav-link active" href="#">Viagens Ativas</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Viagens Fechadas</a></li>
+        <li class="nav-item"><a class="nav-link active" href="viagens_ativas.php">Viagens Ativas</a></li>
+        <li class="nav-item"><a class="nav-link" href="viagens_fechadas.php">Viagens Fechadas</a></li>
       </ul>
     </div>
   </div>
@@ -115,7 +115,7 @@ ksort($viagens_por_mes);
                 </button>
               </div>
 
-              <form action="fechar_viagem.php" method="POST">
+              <form action="viagens_fechadas.php" method="POST">
                 <input type="hidden" name="id_viagem" value="<?php echo $viagem['id']; ?>">
                 <input type="hidden" name="confirmados" value="<?php echo $viagem['confirmados']; ?>">
                 <button type="submit" class="btn btn-azul-escuro btn-sm w-100">
