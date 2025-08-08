@@ -71,7 +71,7 @@ ksort($viagens_por_mes);
 <nav class="navbar navbar-expand-lg navbar-custom">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="#">
-      <img src="images/logo.png" alt="">
+      <img src="images/logo.png" alt="Logo da Agência">
     </a>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
