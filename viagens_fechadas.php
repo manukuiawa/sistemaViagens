@@ -1,70 +1,24 @@
 <?php
 require 'conexao.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_viagem'], $_POST['acao'])) {
-  $id = $_POST['id_viagem'];
-  $acao = $_POST['acao'];
-
-  $sql = "SELECT confirmados FROM viagens WHERE id = ?";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([$id]);
-  $viagem = $stmt->fetch(PDO::FETCH_ASSOC);
-
-  if ($viagem) {
-    $confirmados = (int) $viagem['confirmados'];
-    if ($acao === 'incrementar') {
-      $confirmados++;
-    } elseif ($acao === 'decrementar' && $confirmados > 0) {
-      $confirmados--;
-    }
-
-    $updateSql = "UPDATE viagens SET confirmados = ? WHERE id = ?";
-    $updateStmt = $pdo->prepare($updateSql);
-    $updateStmt->execute([$confirmados, $id]);
-
-    echo json_encode(['success' => true, 'confirmados' => $confirmados]);
-    exit;
-  }
-
-  echo json_encode(['success' => false]);
-  exit;
-}
-
-$sql = "SELECT * FROM viagens WHERE fechada = FALSE ORDER BY data_viagem ASC";
-$stmt = $pdo->prepare($sql);
-$stmt->execute();
+// Buscar todas as viagens fechadas (últimas primeiro)
+$stmt = $pdo->query("
+    SELECT id, destino, data_viagem, passageiros_fechamento, desistencias 
+    FROM viagens 
+    WHERE fechada = TRUE 
+    ORDER BY data_viagem DESC
+");
 $viagens = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-$viagens_por_mes = [];
-
-foreach ($viagens as $viagem) {
-  preg_match('/(\d{2})\/(\d{2})$/', $viagem['data_viagem'], $matches);
-  $mes_num = $matches[2] ?? '00';
-
-  $meses = [
-    '01' => 'Janeiro', '02' => 'Fevereiro', '03' => 'Março', '04' => 'Abril',
-    '05' => 'Maio', '06' => 'Junho', '07' => 'Julho', '08' => 'Agosto',
-    '09' => 'Setembro', '10' => 'Outubro', '11' => 'Novembro', '12' => 'Dezembro'
-  ];
-  $nome_mes = $meses[$mes_num] ?? 'Indefinido';
-
-  $viagens_por_mes[$mes_num]['nome'] = $nome_mes;
-  $viagens_por_mes[$mes_num]['viagens'][] = $viagem;
-}
-
-ksort($viagens_por_mes);
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>Viagens Ativas - Grace Turismo</title>
-  <link rel="icon" type="image" href="/images/logo.png">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="./styles/style.css?v=123">
+    <meta charset="UTF-8" />
+    <title>Viagens Fechadas - Grace Turismo</title>
+    <link rel="icon" type="image" href="/images/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="./styles/style.css">
 </head>
 <body>
 
@@ -73,62 +27,65 @@ ksort($viagens_por_mes);
     <a class="navbar-brand d-flex align-items-center" href="#">
       <img src="images/logo.png" alt="">
     </a>
-    <div class="collapse navbar-collapse" id="navbarNav">
+    <div class="collapse navbar-collapse">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="cadastrar_viagem.php">Cadastrar Viagens</a></li>
-        <li class="nav-item"><a class="nav-link active" href="viagens_ativas.php">Viagens Ativas</a></li>
-        <li class="nav-item"><a class="nav-link" href="viagens_fechadas.php">Viagens Fechadas</a></li>
-        <li class="nav-item"><a class="nav-link" href="viagens_fechadas.php">Relatório</a></li>
+        <li class="nav-item"><a class="nav-link" href="viagens_ativas.php">Viagens Ativas</a></li>
+        <li class="nav-item"><a class="nav-link active" href="viagens_fechadas.php">Viagens Fechadas</a></li>
+        <li class="nav-item"><a class="nav-link" href="relatorio.php">Relatório</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
 <main class="container my-5">
-  <h1 class="text-center mb-4">Viagens Ativas</h1>
+  <h1 class="text-center mb-4">Viagens Fechadas</h1>
+  <div class="row">
+      <?php if (!empty($viagens)): ?>
+          <?php foreach ($viagens as $viagem): ?>
+              <?php
+                  $finais = (int) ($viagem['passageiros_fechamento'] ?? 0);
+                  $desistencias = (int) ($viagem['desistencias'] ?? 0);
+              ?>
+              <div class="col-md-4 mb-4">
+                  <div class="card shadow-sm border-primary border-2">
+                      <div class="card-body text-center">
+                          <h2 class="card-title mb-3"><?= htmlspecialchars($viagem['destino']) ?></h2>
+                          <h5 class="card-subtitle mb-2 text-muted">📅 <?= htmlspecialchars($viagem['data_viagem']) ?></h5>
 
-  <?php foreach ($viagens_por_mes as $dados): ?>
-    <h2 class="text-primary mt-5 texto_mes"><?php echo $dados['nome']; ?></h2>
-    <div class="row">
-      <?php foreach ($dados['viagens'] as $viagem): ?>
-        <div class="col-md-4 mb-4">
-          <div class="card shadow-sm border-primary border-2">
-            <div class="card-body text-center">
-              <h2 class="card-title mb-3"><?php echo htmlspecialchars($viagem['destino']); ?></h2>
-              <h5 class="card-subtitle mb-2 text-muted">📅 <?php echo htmlspecialchars($viagem['data_viagem']); ?></h5>
-              <p class="card-text mb-4">
-                Passageiros Confirmados:
-                <strong id="confirmados-<?php echo $viagem['id']; ?>">
-                  <?php echo $viagem['confirmados']; ?>
-                </strong>
-              </p>
-
-              <div class="d-flex justify-content-center gap-2 mb-3">
-                <button class="btn btn-azul-claro btn-sm w-100 btn-confirmar"
-                        data-id="<?php echo $viagem['id']; ?>"
-                        data-acao="incrementar">
-                  <i class="fas fa-user-plus me-1"></i>Entrou
-                </button>
-                <button class="btn btn-azul-medio btn-sm w-100 btn-confirmar"
-                        data-id="<?php echo $viagem['id']; ?>"
-                        data-acao="decrementar">
-                  <i class="fas fa-user-minus me-1"></i>Saiu
-                </button>
+                          <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#infoViagem<?= $viagem['id'] ?>">
+                              <i class="fas fa-info-circle"></i> Info
+                          </button>
+                      </div>
+                  </div>
               </div>
 
-              <form action="viagens_fechadas.php" method="POST">
-                <input type="hidden" name="id_viagem" value="<?php echo $viagem['id']; ?>">
-                <input type="hidden" name="confirmados" value="<?php echo $viagem['confirmados']; ?>">
-                <button type="submit" class="btn btn-azul-escuro btn-sm w-100">
-                  <i class="fas fa-lock me-1"></i>Fechar Viagem
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      <?php endforeach; ?>
-    </div>
-  <?php endforeach; ?>
+              <!-- Modal -->
+              <div class="modal fade" id="infoViagem<?= $viagem['id'] ?>" tabindex="-1">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Informações - <?= htmlspecialchars($viagem['destino']) ?></h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p><strong>Data:</strong> <?= htmlspecialchars($viagem['data_viagem']) ?></p>
+                      <p><strong>Passageiros Finais:</strong> <?= $finais ?></p>
+                      <p>
+                        Desistências:
+                        <strong id="desistencias-<?php echo $viagem['id']; ?>">
+                          <?php echo $viagem['desistencias']; ?>
+                        </strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          <?php endforeach; ?>
+      <?php else: ?>
+          <p class="text-center">Nenhuma viagem fechada no momento.</p>
+      <?php endif; ?>
+  </div>
 </main>
 
 <footer class="footer-custom text-light py-3 mt-auto">
@@ -146,37 +103,5 @@ ksort($viagens_por_mes);
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  document.querySelectorAll('.btn-confirmar').forEach(button => {
-    button.addEventListener('click', async (e) => {
-      const botao = e.currentTarget;
-      const id = botao.dataset.id;
-      const acao = botao.dataset.acao;
-
-      const formData = new FormData();
-      formData.append('id_viagem', id);
-      formData.append('acao', acao);
-
-      try {
-        const response = await fetch(window.location.href, {
-          method: 'POST',
-          body: formData
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          document.querySelector(`#confirmados-${id}`).textContent = data.confirmados;
-        } else {
-          alert('Erro ao atualizar passageiros');
-        }
-      } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro');
-      }
-    });
-  });
-  
-</script>
 </body>
 </html>

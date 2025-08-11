@@ -2,27 +2,33 @@
 require 'conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_viagem'], $_POST['acao'])) {
-  $id = $_POST['id_viagem'];
+  $id = (int) $_POST['id_viagem'];
   $acao = $_POST['acao'];
 
-  $sql = "SELECT confirmados FROM viagens WHERE id = ?";
+  // Buscar os dados atuais
+  $sql = "SELECT confirmados, desistencias FROM viagens WHERE id = ?";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([$id]);
   $viagem = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if ($viagem) {
     $confirmados = (int) $viagem['confirmados'];
+    $desistencias = (int) $viagem['desistencias'];
+
     if ($acao === 'incrementar') {
       $confirmados++;
+      // Não mexe nas desistências
     } elseif ($acao === 'decrementar' && $confirmados > 0) {
       $confirmados--;
+      $desistencias++;  // Aqui incrementa as desistências
     }
 
-    $updateSql = "UPDATE viagens SET confirmados = ? WHERE id = ?";
+    // Atualiza os dois campos no banco
+    $updateSql = "UPDATE viagens SET confirmados = ?, desistencias = ? WHERE id = ?";
     $updateStmt = $pdo->prepare($updateSql);
-    $updateStmt->execute([$confirmados, $id]);
+    $updateStmt->execute([$confirmados, $desistencias, $id]);
 
-    echo json_encode(['success' => true, 'confirmados' => $confirmados]);
+    echo json_encode(['success' => true, 'confirmados' => $confirmados, 'desistencias' => $desistencias]);
     exit;
   }
 
@@ -71,13 +77,14 @@ ksort($viagens_por_mes);
 <nav class="navbar navbar-expand-lg navbar-custom">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="#">
-      <img src="images/logo.png" alt="Logo da Agência">
+      <img src="images/logo.png" alt="">
     </a>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="cadastrar_viagem.php">Cadastrar Viagens</a></li>
         <li class="nav-item"><a class="nav-link active" href="viagens_ativas.php">Viagens Ativas</a></li>
         <li class="nav-item"><a class="nav-link" href="viagens_fechadas.php">Viagens Fechadas</a></li>
+        <li class="nav-item"><a class="nav-link" href="viagens_fechadas.php">Relatório</a></li>
       </ul>
     </div>
   </div>
@@ -115,13 +122,14 @@ ksort($viagens_por_mes);
                 </button>
               </div>
 
-              <form action="viagens_fechadas.php" method="POST">
+              <form action="fechar_viagem.php" method="POST">
                 <input type="hidden" name="id_viagem" value="<?php echo $viagem['id']; ?>">
-                <input type="hidden" name="confirmados" value="<?php echo $viagem['confirmados']; ?>">
-                <button type="submit" class="btn btn-azul-escuro btn-sm w-100">
-                  <i class="fas fa-lock me-1"></i>Fechar Viagem
+                <button type="submit" class="btn btn-azul-escuro btn-sm w-100" data-id="<?php echo $viagem['id']; ?>">
+                    <i class="fas fa-lock me-1"></i> Fechar Viagem
                 </button>
-              </form>
+            </form>
+
+
             </div>
           </div>
         </div>
