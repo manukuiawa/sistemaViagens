@@ -10,24 +10,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_viagem'])) {
     $viagem = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($viagem) {
-        $confirmados = (int) $viagem['confirmados'];
         $desistencias = (int) $viagem['desistencias'];
 
-        // Calcula passageiros finais (não deixa negativo)
-        $passageiros_fechamento = max(0, $confirmados - $desistencias);
-
-        // Marca como fechada e salva os dados finais
+        // Marca como fechada e atualiza desistencias (confirmados fica intacto)
         $update = $pdo->prepare("
             UPDATE viagens 
             SET fechada = 1, 
-                passageiros_fechamento = ?, 
                 desistencias = ? 
             WHERE id = ?
         ");
-        $update->execute([$passageiros_fechamento, $desistencias, $id]);
+        $update->execute([$desistencias, $id]);
     }
 }
 
-// Redireciona pra lista de fechadas
+// Redireciona pra lista de viagens fechadas
 header('Location: viagens_fechadas.php');
 exit;
+?>

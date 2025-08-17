@@ -3,7 +3,7 @@ require 'conexao.php';
 
 // Buscar todas as viagens fechadas (últimas primeiro)
 $stmt = $pdo->query("
-    SELECT id, destino, data_viagem, passageiros_fechamento, desistencias 
+    SELECT id, destino, data_viagem, passageiros_fechamento, confirmados, desistencias 
     FROM viagens 
     WHERE fechada = TRUE 
     ORDER BY data_viagem DESC
@@ -70,13 +70,8 @@ $viagens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="modal-body">
                       <p><strong>Data:</strong> <?= htmlspecialchars($viagem['data_viagem']) ?></p>
-                      <p><strong>Passageiros Finais:</strong> <?= $finais ?></p>
-                      <p>
-                        Desistências:
-                        <strong id="desistencias-<?php echo $viagem['id']; ?>">
-                          <?php echo $viagem['desistencias']; ?>
-                        </strong>
-                      </p>
+                      <p><strong>Passageiros Confirmados:</strong> <?= htmlspecialchars($viagem['confirmados']) ?></p>
+                      <p><strong>Desistências:</strong> <?= htmlspecialchars($viagem['desistencias']) ?></p>
                     </div>
                   </div>
                 </div>
